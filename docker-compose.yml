@@ -1,0 +1,12 @@
+services:
+  twocker:
+    image: twocker:latest
+    ports:
+      - "8000:8000"
+    volumes: 
+      - ./config.json:/app/config.json
+    environment:
+      - TWITCH_TOKEN=oauth:m49ra8pgoty0sqsky0h2abqjcbbjt3
+      - TWITCH_CHANNEL=whitestar___
+      - MESSAGE=Twocker
+      - INTERVAL=10
