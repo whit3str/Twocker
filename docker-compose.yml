@@ -1,6 +1,6 @@
 services:
   twocker:
-    image: twocker:latest
+    image: ghcr.io/whit3str/twocker:latest
     ports:
       - "8000:8000"
     volumes: 
