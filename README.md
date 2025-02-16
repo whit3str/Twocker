@@ -17,8 +17,6 @@ Just a silly mixing of Twitch Bot on Docker. Proudly and poorly made in Python w
 
 Clone the repository.
 
-Create an empty `config.json` in order to store the needed parameters.
-
 Fill the `.env` file with your needs, helpful table is available below.
 
 ### Variables
@@ -39,14 +37,12 @@ services:
     image: ghcr.io/whit3str/twocker:latest
     ports:
       - "8000:8000"
-    volumes: 
-      - ./config.json:/app/config.json
     env_file: .env
  ```
 Run the following command within the cloned repository `docker-compose up -d` and head to http://localhost:8080.
 ## To Do
 
 * Add a random interval 
-* Check if channel is followed and/or live before posting
+* Check if channel is live before posting
 * Add a message preview line
 

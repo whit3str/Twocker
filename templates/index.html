@@ -174,7 +174,7 @@
 </head>
 <body>
 <div class="header">
-    <h1>Twocker</h1>
+    <h1>Twocker v0.3</h1>
     <div class="header-icons">
         <button class="theme-toggle" id="themeToggle">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -211,7 +211,9 @@
     </div>
     <div class="info-box">
         <h3>Current Configuration</h3>
-        <p>Twitch Channel: {{ current_channel }}</p>
+        <p>Twitch Channel: <span id="currentChannel">{{ current_channel }}</span></p>
+        <p>Message: <span id="currentMessage">{{ current_message }}</span></p>
+        <p>Interval: <span id="currentInterval">{{ current_interval }}</span> minutes</p>
     </div>
 </div>
 
@@ -245,6 +247,7 @@
         <button type="submit">Update Configuration</button>
     </form>
 </div>
+
 <div class="log-container">
     <h2>Execution Log</h2>
     <div id="logEntries"></div>
@@ -282,6 +285,14 @@
             });
 
             const result = await response.json();
+
+            if (response.ok) {
+                // Mise à jour des informations de configuration
+                document.getElementById('currentChannel').textContent = document.getElementById('channel').value;
+                document.getElementById('currentMessage').textContent = document.getElementById('message').value;
+                document.getElementById('currentInterval').textContent = document.getElementById('interval').value;
+            }
+
             showAlert(result.message, response.ok ? 'success' : 'error');
 
         } catch (error) {
@@ -354,56 +365,6 @@
             eventSource = new EventSource('/logs');
         }, 5000);
     };
-    document.getElementById('intervalType').addEventListener('change', function() {
-        const fixedGroup = document.getElementById('fixedIntervalGroup');
-        const randomGroup = document.getElementById('randomIntervalGroup');
-        const isRandom = this.value === 'random';
-
-        fixedGroup.style.display = isRandom ? 'none' : 'block';
-        randomGroup.style.display = isRandom ? 'block' : 'none';
-
-        if (isRandom) {
-            document.getElementById('interval').removeAttribute('required');
-            document.getElementById('minInterval').setAttribute('required', '');
-            document.getElementById('maxInterval').setAttribute('required', '');
-        } else {
-            document.getElementById('interval').setAttribute('required', '');
-            document.getElementById('minInterval').removeAttribute('required');
-            document.getElementById('maxInterval').removeAttribute('required');
-        }
-    });
-
-    // Update form submission handler
-    document.getElementById('settingsForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        const formData = new FormData();
-        formData.append('channel', document.getElementById('channel').value);
-        formData.append('message', document.getElementById('message').value);
-        formData.append('intervalType', document.getElementById('intervalType').value);
-
-        const isRandom = document.getElementById('intervalType').value === 'random';
-        if (isRandom) {
-            formData.append('minInterval', document.getElementById('minInterval').value);
-            formData.append('maxInterval', document.getElementById('maxInterval').value);
-        } else {
-            formData.append('interval', document.getElementById('interval').value);
-        }
-
-        try {
-            const response = await fetch('/update_settings', {
-                method: 'POST',
-                body: formData
-            });
-
-            const result = await response.json();
-            showAlert(result.message, response.ok ? 'success' : 'error');
-
-        } catch (error) {
-            console.error('Error:', error);
-            showAlert('Error updating settings.', 'error');
-        }
-    });
 </script>
 </body>
 </html>

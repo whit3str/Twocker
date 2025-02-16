@@ -3,6 +3,4 @@ services:
     image: ghcr.io/whit3str/twocker:latest
     ports:
       - "8000:8000"
-    volumes: 
-      - ./config.json:/app/config.json
     env_file: .env
