@@ -39,7 +39,7 @@ services:
       - "8000:8000"
     env_file: .env
  ```
-Run the following command within the cloned repository `docker-compose up -d` and head to http://localhost:8080.
+Run the following command within the cloned repository `docker-compose up -d` and head to http://localhost:8000.
 ## To Do
 
 * Add a random interval 
