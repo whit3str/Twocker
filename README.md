@@ -2,6 +2,9 @@
 
 Just a silly mixing of Twitch Bot on Docker. Proudly and poorly made in Python with [Claude.ai](https://claude.ai/). 
 
+![{FB734D0C-DF0A-4ACE-884F-F18A0418C47F}](https://github.com/user-attachments/assets/ee219803-ad50-41cc-ba67-eab74532aaec)
+
+
 ## Features
 - Channel selector
 - Message inputer with Twitch-style preview
