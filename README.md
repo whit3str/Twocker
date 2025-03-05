@@ -23,6 +23,7 @@ Just a silly mixing of Twitch Bot on Docker. Proudly and poorly made in Python w
 ## Prerequisites
 - A Twitch [access token](https://twitchtokengenerator.com/)
 - Docker
+- An already followed channel from the bot
 
 ## Deployment
 
