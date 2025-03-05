@@ -170,11 +170,92 @@
             color: #721c24;
             border: 1px solid #f5c6cb;
         }
+
+        /* Styles pour la prévisualisation Twitch */
+        .preview-container {
+            background-color: var(--form-bg);
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .chat-line__message {
+            padding: 5px 20px;
+            font-family: Inter, "Helvetica Neue", Helvetica, Arial, sans-serif;
+            line-height: 20px;
+            font-size: 13px;
+            background-color: var(--bg-color);
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        
+        .chat-line__timestamp {
+            color: #adadb8;
+            margin-right: 5px;
+        }
+        
+        .chat-author__display-name {
+            font-weight: bold;
+            color: #772ce8;
+        }
+        
+        .chat-line__message-body {
+            color: var(--text-color);
+        }
+        
+        .preview-label {
+            font-size: 0.9em;
+            color: #adadb8;
+            margin-bottom: 10px;
+        }
+
+        .chat-badges {
+            display: inline-flex;
+            gap: 4px;
+            margin-right: 4px;
+        }
+
+        .chat-badge {
+            width: 18px;
+            height: 18px;
+            margin-right: 2px;
+            vertical-align: middle;
+        }
+
+        .status-checks {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            justify-content: flex-start;
+        }
+
+        .status-check {
+            display: flex;
+            align-items: center;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+
+        .status-label {
+            font-size: 0.9em;
+            color: #adadb8;
+        }
+
+        /* Styles pour l'intervalle aléatoire */
+        .interval-container {
+            display: flex;
+            align-items: center;
+        }
     </style>
 </head>
 <body>
 <div class="header">
-    <h1>Twocker v0.3</h1>
+    <h1>Twocker v0.4</h1>
     <div class="header-icons">
         <button class="theme-toggle" id="themeToggle">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -210,10 +291,28 @@
         </button>
     </div>
     <div class="info-box">
-        <h3>Current Configuration</h3>
-        <p>Twitch Channel: <span id="currentChannel">{{ current_channel }}</span></p>
-        <p>Message: <span id="currentMessage">{{ current_message }}</span></p>
-        <p>Interval: <span id="currentInterval">{{ current_interval }}</span> minutes</p>
+        <h3>Message Preview</h3>
+        <div class="chat-line__message">
+            <span class="chat-line__timestamp" id="nextMessageTime">--:--</span>
+            <span class="chat-badges" id="chatBadges"></span>
+            <span class="chat-author__display-name">{{ bot.nick }}</span>
+            <span aria-hidden="true">: </span>
+            <span class="chat-line__message-body" id="previewMessage">{{ current_message }}</span>
+        </div>
+        <div class="status-checks">
+            <div class="status-check">
+                <span class="status-dot" id="liveStatus"></span>
+                <span class="status-label">Live</span>
+            </div>
+            <div class="status-check">
+                <span class="status-dot" id="followStatus"></span>
+                <span class="status-label">Follow</span>
+            </div>
+            <div class="status-check">
+                <span class="status-dot" id="banStatus"></span>
+                <span class="status-label">Not Banned</span>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -236,18 +335,19 @@
         </div>
         <div class="input-group">
             <label for="interval">Interval (minutes):</label>
-            <input type="number"
-                   name="interval"
-                   id="interval"
-                   value="{{ current_interval }}"
-                   min="1"
-                   max="60"
-                   required>
+            <div class="interval-container">
+                <input type="number"
+                       name="interval"
+                       id="interval"
+                       value="{{ current_interval }}"
+                       min="1"
+                       max="60"
+                       required>
+            </div>
         </div>
         <button type="submit">Update Configuration</button>
     </form>
 </div>
-
 <div class="log-container">
     <h2>Execution Log</h2>
     <div id="logEntries"></div>
@@ -257,6 +357,97 @@
     // Theme toggle functionality
     const themeToggle = document.getElementById('themeToggle');
     const html = document.documentElement;
+    const messageInput = document.getElementById('message');
+    const previewMessage = document.getElementById('previewMessage');
+    const nextMessageTime = document.getElementById('nextMessageTime');
+    const intervalInput = document.getElementById('interval');
+
+    // Update preview in real-time
+    messageInput.addEventListener('input', (e) => {
+        previewMessage.textContent = e.target.value;
+    });
+
+    // Update next message time
+    function updateNextMessageTime() {
+        const now = new Date();
+        const nextInterval = intervalInput.value;
+        const nextMessage = new Date(now.getTime() + nextInterval * 60000);
+        nextMessageTime.textContent = nextMessage.toLocaleTimeString('en-US', { 
+            hour: '2-digit', 
+            minute: '2-digit'
+        });
+    }
+
+    // Update time when interval changes
+    intervalInput.addEventListener('input', updateNextMessageTime);
+
+    // Function to update status indicators
+    async function updateStatusChecks() {
+        const channel = document.getElementById('channel').value;
+        
+        try {
+            // Check live status
+            const liveResponse = await fetch(`/check_live/${channel}`);
+            const liveData = await liveResponse.json();
+            const liveStatus = document.getElementById('liveStatus');
+            liveStatus.style.backgroundColor = liveData.is_live ? '#28a745' : '#dc3545';
+            liveStatus.title = liveData.is_live ? 'Channel is live' : 'Channel is offline';
+
+            // Check follow status
+            const followResponse = await fetch(`/check_follow/${channel}`);
+            const followData = await followResponse.json();
+            const followStatus = document.getElementById('followStatus');
+            followStatus.style.backgroundColor = followData.is_following ? '#28a745' : '#dc3545';
+            followStatus.title = followData.is_following ? 'Following channel' : 'Not following channel';
+
+            // Check ban status
+            const banResponse = await fetch(`/check_ban/${channel}`);
+            const banData = await banResponse.json();
+            const banStatus = document.getElementById('banStatus');
+            banStatus.style.backgroundColor = !banData.is_banned ? '#28a745' : '#dc3545';
+            banStatus.title = !banData.is_banned ? 'Not banned from channel' : 'Banned from channel';
+        } catch (error) {
+            console.error('Error updating status checks:', error);
+        }
+    }
+
+    // Update status every 30 seconds
+    setInterval(updateStatusChecks, 30000);
+
+    // Update status on load and when channel changes
+    updateStatusChecks();
+    document.getElementById('channel').addEventListener('change', updateStatusChecks);
+
+    // Function to fetch and display bot badges
+    async function updateBotBadges() {
+        const chatBadges = document.getElementById('chatBadges');
+        try {
+            const response = await fetch(`https://api.twitch.tv/helix/chat/badges/global`, {
+                headers: {
+                    'Client-ID': '{{ client_id }}',
+                    'Authorization': 'Bearer {{ token }}'
+                }
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                // Exemple : afficher le badge de bot si présent
+                const botBadge = data.data.find(badge => badge.set_id === 'bot');
+                if (botBadge) {
+                    const img = document.createElement('img');
+                    img.src = botBadge.versions[0].image_url_1x;
+                    img.alt = 'Bot Badge';
+                    img.className = 'chat-badge';
+                    chatBadges.appendChild(img);
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching badges:', error);
+        }
+    }
+
+    // Update badges on load
+    updateBotBadges();
 
     // Check for saved theme preference
     const savedTheme = localStorage.getItem('theme') || 'light';
@@ -273,27 +464,33 @@
     document.getElementById('settingsForm').addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        const formData = new FormData();
-        formData.append('channel', document.getElementById('channel').value);
-        formData.append('message', document.getElementById('message').value);
-        formData.append('interval', document.getElementById('interval').value);
+        const formData = {
+            channel: document.getElementById('channel').value,
+            message: document.getElementById('message').value,
+            interval: parseInt(document.getElementById('interval').value)
+        };
 
         try {
             const response = await fetch('/update_settings', {
                 method: 'POST',
-                body: formData
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
             });
 
             const result = await response.json();
 
             if (response.ok) {
-                // Mise à jour des informations de configuration
-                document.getElementById('currentChannel').textContent = document.getElementById('channel').value;
-                document.getElementById('currentMessage').textContent = document.getElementById('message').value;
-                document.getElementById('currentInterval').textContent = document.getElementById('interval').value;
+                showAlert(result.message, 'success');
+                // Mettre à jour la prévisualisation
+                previewMessage.textContent = formData.message;
+                updateNextMessageTime();
+                // Mettre à jour les statuts
+                updateStatusChecks();
+            } else {
+                showAlert(result.message || 'Error updating settings.', 'error');
             }
-
-            showAlert(result.message, response.ok ? 'success' : 'error');
 
         } catch (error) {
             console.error('Error:', error);

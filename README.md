@@ -4,10 +4,17 @@ Just a silly mixing of Twitch Bot on Docker. Proudly and poorly made in Python w
 
 ## Features
 - Channel selector
-- Message inputer
+- Message inputer with Twitch-style preview
 - Time delayer
 - Bot enabler
-- Log shower
+- Live status monitoring
+- Follow status check
+- Ban detection
+- Authentication system
+- Caching system for API calls
+- Dark/Light theme toggle
+- Real-time message preview with Twitch chat style
+- Status indicators (Live, Follow, Ban)
 
 ## Prerequisites
 - A Twitch [access token](https://twitchtokengenerator.com/)
@@ -21,13 +28,17 @@ Fill the `.env` file with your needs, helpful table is available below.
 
 ### Variables
 
-| Name             | Description/Value          |
-|------------------|----------------------------|
-| TWITCH_TOKEN     | oauth:<access_token>       |
-| TWITCH_CHANNEL   | Default channel to chat to |
-| DEFAULT_MESSAGE  | Hello world                |
-| DEFAULT_INTERVAL | Between 1 to 60 (min)      |
-| BOT_ACTIVE       | false (default) / true     |
+| Name             | Description/Value                      |
+|------------------|----------------------------------------|
+| TWITCH_TOKEN     | oauth:<access_token>                   |
+| CLIENT_ID        | Your Twitch application client ID      |
+| TWITCH_CHANNEL   | Default channel to chat to             |
+| DEFAULT_MESSAGE  | Hello world                            |
+| DEFAULT_INTERVAL | Between 1 to 60 (min)                  |
+| BOT_ACTIVE       | false (default) / true                 |
+| API_USERNAME     | Username for web interface (default: admin) |
+| API_PASSWORD     | Password for web interface (default: password) |
+| CACHE_EXPIRY     | Cache duration in seconds (default: 300) |
 
 ### Docker Compose
 
@@ -39,10 +50,11 @@ services:
       - "8000:8000"
     env_file: .env
  ```
-Run the following command within the cloned repository `docker-compose up -d` and head to http://localhost:8080.
-## To Do
+Run the following command within the cloned repository `docker-compose up -d` and head to http://localhost:8000.
 
-* Add a random interval 
-* Check if channel is live before posting
-* Add a message preview line
+## Security
 
+The application includes basic authentication:
+- Username/password authentication for the web interface
+- Secure session management
+- Rate limiting for API calls
