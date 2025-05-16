@@ -1,6 +1,9 @@
 # Twocker
 
-Just a silly mixing of Twitch Bot on Docker. Proudly and poorly made in Python with [Claude.ai](https://claude.ai/). 
+<div align="center">
+  <img src="/assets/logo.png" alt="Twocker Logo" width="200"/>
+  <p>Just a silly mixing of Twitch Bot on Docker. Proudly and poorly made in Python with <a href="https://claude.ai/">Claude.ai</a>.</p>
+</div>
 
 ![{0B6EC635-7CF5-42FB-8331-5873E628051C}](https://github.com/user-attachments/assets/dbb35d39-2633-4d19-8b82-a917498b2fd4)
 
